@@ -18,17 +18,6 @@ if (isset($_SESSION["uid"])) {
     $cardnumberstr=(string)$cardnumber;
     $total_count=$_POST['total_count'];
     $prod_total = $_POST['total_price'];
-    #XSS
-    if (MultiCheck($f_name) or MultiCheck($email) or MultiCheck($address) or MultiCheck($city) or MultiCheck($state) or MultiCheck($zip)
-    or MultiCheck($cardname) or MultiCheck($cardnumber) or MultiCheck($expdate) or MultiCheck($cvv) or MultiCheck($user_id) or MultiCheck($cardnumberstr)
-    or MultiCheck($total_count) or MultiCheck($prod_total))
-    {
-        echo "<script>
-        alert('Some field are suspected of having malicious code');
-        history.go(-1);
-        </script>";
-        exit();
-    }
     
     $sql0="SELECT order_id from `orders_info`";
     $runquery=mysqli_query($con,$sql0);

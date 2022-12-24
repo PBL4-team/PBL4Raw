@@ -2,12 +2,6 @@
 require_once("./fpdf/fpdf.php");
 if (isset($_GET['order_id'])) {
 	$orderid = $_GET['order_id'];
-	if (!is_numeric($_GET['order_id'])) {
-		#kiểm tra SQLI kiểu số.
-		include("index.php");
-		echo "<script>alert('Trang có thông số nguy hiểm do nghi ngờ có mã độc. Vui lòng không thử lại thao tác.')</script>";
-		exit();
-	}
 } else
 	header("location: index.php");
 

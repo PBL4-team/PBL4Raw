@@ -2,26 +2,6 @@
 @session_start();
 $ip_add = getenv("REMOTE_ADDR");
 include "db.php";
-function Check($Input, $check)
-{
-	$Input = " " . $Input;
-	return strpos($Input, $check) or strpos(strtoupper($Input), strtoupper($check));
-}
-function MultiCheck($Input) {
-	return (Check($Input, "javascript:") 
-	or Check($Input, "<script") 
-	or Check($Input, "<php") 
-	or Check($Input, "<?") 
-	or Check($Input, "<form"));
-}
-function Validate($Input) {
-	$Input = str_replace('<', '&#60',$Input);
-	$Input = str_replace('>', '&#62', $Input);
-	$Input = str_replace('\'', '\\\'', $Input);
-	$Input = str_replace('javascript', htmlentities("javascript"), $Input);
-	$Input = str_replace('js', htmlentities("js"), $Input);
-	return $Input;
-}
 if (isset($_POST["category"])) {
 	
 	$category_query = "SELECT * FROM categories";
@@ -123,9 +103,6 @@ if (isset($_POST["getProduct"])) {
 	$limit = 9;
 	if (isset($_POST["setPage"])) {
 		$pageno = $_POST["pageNumber"];
-		#kiểm tra SQL injection: kiểu số
-		if (!is_numeric($pageno))
-			$pageno = 1;
 		$start = ($pageno * $limit) - $limit;
 	} else {
 		$start = 0;
@@ -172,27 +149,16 @@ if (isset($_POST["getProduct"])) {
 if (isset($_POST["get_seleted_Category"]) || isset($_POST["selectBrand"]) || isset($_POST["search"])) {
 	if (isset($_POST["get_seleted_Category"])) {
 		$id = $_POST["cat_id"];
-		#kiểm tra SQL injection: kiểu số
-		if (!is_numeric($id)) {
-			echo "<script>alert('Trang có thông số nguy hiểm do nghi ngờ có mã độc. Vui lòng không thử lại thao tác.')</script>";
-			$id = 1;
-		}
 		$sql = "SELECT * FROM products,categories WHERE product_cat = '$id' AND product_cat=cat_id";
 	} else if (isset($_POST["selectBrand"])) {
 		$id = $_POST["brand_id"];
-		#kiểm tra SQL injection: kiểu số
-		if (!is_numeric($id)) {
-			echo "<script>alert('Trang có thông số nguy hiểm do nghi ngờ có mã độc. Vui lòng không thử lại thao tác.')</script>";
-			$id = 1;
-		}
 		$sql = "SELECT * FROM products,categories WHERE product_brand = '$id' AND product_cat=cat_id";
 	} else {
 		$keyword = $_POST["keyword"];
 		$keyword = mysqli_real_escape_string($con, $keyword);
 		$sql = "SELECT * FROM products inner join `categories` on products.product_cat = categories.cat_id
 		 WHERE product_cat=cat_id AND product_title LIKE " . "'%$keyword%'";
-		#chống XSS: mã hoá dữ liệu đầu vào sang mã ASCII.
-		echo "<div>Kết quả tìm kiếm cho từ khoá <b>'" . htmlentities($keyword) . "'</b>: " . mysqli_num_rows(mysqli_query($con, $sql)) . "</div>";
+		echo "<div>Kết quả tìm kiếm cho từ khoá <b>'" . $keyword . "'</b>: " . mysqli_num_rows(mysqli_query($con, $sql)) . "</div>";
 	}
 	
 	$sort = $_POST["get_sort"];
@@ -205,15 +171,9 @@ if (isset($_POST["get_seleted_Category"]) || isset($_POST["selectBrand"]) || iss
 	
 	$amount = 9;
 
-	#kiểm tra sqli kiểu số:
-	if (is_numeric($_POST["pageNumber"]))
-		$start = ((int)$_POST["pageNumber"]-1)*$amount;
-	else
-		$start = 1;
+	$start = ((int)$_POST["pageNumber"]-1)*$amount;
 	$sql = $sql . " ORDER BY $sort ASC LIMIT $start, $amount";
-	#kiểm tra SQL injection: kiểu số
-	if (!is_numeric($amount))
-		$amount = 20;
+	$amount = 20;
 
 	$index = 0;
 	$run_query = mysqli_query($con, $sql);
@@ -255,11 +215,7 @@ if (isset($_POST["addToCart"])) {
 
 
 	$p_id = $_POST["proId"];
-	#kiểm tra SQL injection: kiểu số
-	if (!is_numeric($p_id)) {
-		echo "<script>alert('Trang có thông số nguy hiểm do nghi ngờ có mã độc. Vui lòng không thử lại thao tác.')</script>";
-	}
-	else if (isset($_SESSION["uid"])) {
+	if (isset($_SESSION["uid"])) {
 
 		$user_id = $_SESSION["uid"];
 
@@ -272,7 +228,7 @@ if (isset($_POST["addToCart"])) {
 						<a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a>
 						<b>Product is already added into the cart Continue Shopping..!</b>
 				</div>
-			"; //not in video
+			"; 
 		} else {
 			$sql = "INSERT INTO `cart`
 			(`p_id`, `ip_add`, `user_id`, `qty`) 
@@ -540,22 +496,17 @@ if (isset($_POST["Common"])) {
 //Remove Item From cart
 if (isset($_POST["removeItemFromCart"])) {
 	$remove_id = $_POST["rid"];
-	#kiểm tra SQL injection: kiểu số
-	if (!is_numeric($remove_id)) {
-		echo "<script>alert('Trang có thông số nguy hiểm do nghi ngờ có mã độc. Vui lòng không thử lại thao tác.')</script>";
+	if (isset($_SESSION["uid"])) {
+		$sql = "DELETE FROM cart WHERE p_id = '$remove_id' AND user_id = '$_SESSION[uid]'";
 	} else {
-		if (isset($_SESSION["uid"])) {
-			$sql = "DELETE FROM cart WHERE p_id = '$remove_id' AND user_id = '$_SESSION[uid]'";
-		} else {
-			$sql = "DELETE FROM cart WHERE p_id = '$remove_id' AND ip_add = '$ip_add'";
-		}
-		if (mysqli_query($con, $sql)) {
-			echo "<div class='alert alert-danger'>
-						<a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a>
-						<b>Product is removed from cart</b>
-				</div>";
-			exit();
-		}
+		$sql = "DELETE FROM cart WHERE p_id = '$remove_id' AND ip_add = '$ip_add'";
+	}
+	if (mysqli_query($con, $sql)) {
+		echo "<div class='alert alert-danger'>
+					<a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a>
+					<b>Product is removed from cart</b>
+			</div>";
+		exit();
 	}
 }
 
@@ -564,24 +515,18 @@ if (isset($_POST["removeItemFromCart"])) {
 if (isset($_POST["updateCartItem"])) {
 	$update_id = $_POST["update_id"];
 	$qty = $_POST["qty"];
-	#kiểm tra SQL injection: kiểu số
-	echo "<script>alert('$qty')</script>";
-	if (!is_numeric($update_id) || !is_numeric($qty)) {
-		echo "<script>alert('Trang có thông số nguy hiểm do nghi ngờ có mã độc. Vui lòng không thử lại thao tác.')</script>";
+	
+	if (isset($_SESSION["uid"])) {
+		$sql = "UPDATE cart SET qty='$qty' WHERE p_id = '$update_id' AND user_id = '$_SESSION[uid]'";
+	} else {
+		$sql = "UPDATE cart SET qty='$qty' WHERE p_id = '$update_id' AND ip_add = '$ip_add'";
 	}
-	else {
-		if (isset($_SESSION["uid"])) {
-			$sql = "UPDATE cart SET qty='$qty' WHERE p_id = '$update_id' AND user_id = '$_SESSION[uid]'";
-		} else {
-			$sql = "UPDATE cart SET qty='$qty' WHERE p_id = '$update_id' AND ip_add = '$ip_add'";
-		}
-		if (mysqli_query($con, $sql)) {
-			echo "<div class='alert alert-info'>
-							<a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a>
-							<b>Product is updated</b>
-					</div>";
-			exit();
-		}
+	if (mysqli_query($con, $sql)) {
+		echo "<div class='alert alert-info'>
+						<a href='#' class='close' data-dismiss='alert' aria-label='close'>&times;</a>
+						<b>Product is updated</b>
+				</div>";
+		exit();
 	}
 }
 
@@ -852,14 +797,10 @@ if (isset($_POST["changepwd"])) {
 }
 if (isset($_GET["comment"])) {
 	if (isset($_SESSION['uid']) && trim($_GET["comment"], " ") != "") {
-		$_GET["comment"] = Validate($_GET["comment"]);
 
-        if (MultiCheck($_GET["comment"])) 
-            echo "<script>alert('Thao tác không hợp lệ. Bạn vừa thực hiện một hành động đáng ngờ.')</script>";
-        else {
-            $sql = "INSERT INTO `comment` (`User_id`, `Product_id`, `Content`) VALUES ('$_SESSION[uid]','$_GET[p]','$_GET[comment]');";
-            $rs = mysqli_query($con, $sql);
-        }
+        
+		$sql = "INSERT INTO `comment` (`User_id`, `Product_id`, `Content`) VALUES ('$_SESSION[uid]','$_GET[p]','$_GET[comment]');";
+		$rs = mysqli_query($con, $sql);
         $sql = "SELECT * FROM `comment` INNER JOIN user_info on comment.User_id = user_info.user_id WHERE comment.Product_id = '$_GET[p]'";
         $rs = mysqli_query($con, $sql);
 	while ($row = mysqli_fetch_array($rs)) {

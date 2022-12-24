@@ -164,11 +164,6 @@ if (isset($_POST["gethomeProduct"])) {
 if (isset($_POST["get_seleted_Category"]) ||  isset($_POST["search"])) {
 	if (isset($_POST["get_seleted_Category"])) {
 		$id = $_POST["cat_id"];
-		#kiểm tra SQL injection: kiểu số
-		if (!is_numeric($id)) {
-			echo "<script>alert('Trang có thông số nguy hiểm do nghi ngờ có mã độc. Vui lòng không thử lại thao tác.')</script>";
-			$id = 1;
-		}
 		$sql = "SELECT * FROM products,categories WHERE product_cat = '$id' AND product_cat=cat_id";
 	} else {
 		$keyword = $_POST["keyword"];

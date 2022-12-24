@@ -1,18 +1,5 @@
 <?php
-    session_start();
-    include("./db.php");
-    #Lấy tên file trong đường dẫn~
-    $filename = basename($_GET['file']);
-    # cấu trúc của filename = "order" + orderid + ".pdf"
-    # Select từ DB xem tên file hiện tại chứa order id có nằm trong các order id của người dùng~ 
-    $sql = "SELECT order_id  FROM `orders_info` WHERE user_id = '$_SESSION[uid]' and order_id ='".substr($filename, 5, -4)."'";
-    if (mysqli_num_rows(mysqli_query($con,$sql)) <1)
-    {
-        #nếu không thuộc order id của người dùng, in ra lỗi và quay về trang cá nhân của người dùng
-        echo "<script>alert('Thao tác không hợp lệ. Bạn không được phép truy cập vào địa chỉ này.')</script>";
-        include("profile.php");
-        exit();
-    }
+    $filename = $_GET['file'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
