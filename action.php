@@ -747,7 +747,7 @@ if (isset($_POST["changePwd"])) {
     </div>";
 }
 if (isset($_POST["changepwd"])) {
-	$rs = mysqli_query($con, "SELECT * FROM user_info WHERE user_id = '$_SESSION[uid]' and password='$_POST[Oldpwd]' or password='" . md5($_POST['Oldpwd']) . "'");
+	$rs = mysqli_query($con, "SELECT * FROM user_info WHERE user_id = '$_SESSION[uid]' and password='$_POST[Oldpwd]' or password='" . $_POST['Oldpwd'] . "'");
 	$row = mysqli_fetch_array($rs);
 	if (mysqli_num_rows($rs) > 0 and ($_POST["Newpwd"] == $_POST["Cfpwd"])) {
 		$sql = "UPDATE user_info SET password = '$_POST[Newpwd]' WHERE user_id = '$_SESSION[uid]' ;";
