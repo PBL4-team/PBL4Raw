@@ -4,7 +4,7 @@ include("./includes/db.php");
 if (isset($_POST['re_password'])) {
   $email = $_SESSION['admin_name'];
   $old_pass = $_POST['old_pass'];
-  $op = md5($old_pass);
+  $op = $old_pass;
   $new_pass = $_POST['new_pass'];
   $re_pass = $_POST['re_pass'];
   $password_query = mysqli_query($con, "select * from admin_info where admin_email='$email'");
@@ -12,7 +12,7 @@ if (isset($_POST['re_password'])) {
   $database_password = $password_row['admin_password'];
   if ($database_password == $op) {
     if ($new_pass == $re_pass) {
-      $pass = md5($re_pass);
+      $pass = $re_pass;
       $update_pwd = mysqli_query($con, "UPDATE admin_info set admin_password='$pass' where admin_email='$email'");
       echo "<script>alert('Update sucessfully!'); </script>";
     } else {
