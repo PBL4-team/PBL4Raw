@@ -43,7 +43,7 @@ if (isset($_POST['login_admin'])) {
   // Code mới, dùng PDO, chống được sqli
   if (count($errors) == 0) {
     $password = md5($password);
-    $db = new PDO('mysql:host=localhost;port=3306;dbname=onlineshop', 'root', '');
+    $db = new PDO('mysql:host=localhost;port=3307;dbname=onlineshop', 'root', '');
     // Set up the prepared statement
     $stmt = $db->prepare('SELECT * FROM admin_info WHERE admin_email = :username AND admin_password = :password');
     // Bind the parameters to the prepared statement

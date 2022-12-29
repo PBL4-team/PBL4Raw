@@ -158,7 +158,9 @@ if (isset($_POST["get_seleted_Category"]) || isset($_POST["selectBrand"]) || iss
 		$keyword = mysqli_real_escape_string($con, $keyword);
 		$sql = "SELECT * FROM products inner join `categories` on products.product_cat = categories.cat_id
 		 WHERE product_cat=cat_id AND product_title LIKE " . "'%$keyword%'";
-		echo "<div>Kết quả tìm kiếm cho từ khoá <b>'" . $keyword . "'</b>: " . mysqli_num_rows(mysqli_query($con, $sql)) . "</div>";
+		echo "<div>Kết quả tìm kiếm cho từ khoá <b>'";
+		echo $_POST["keyword"];
+		echo "'</b>: " . mysqli_num_rows(mysqli_query($con, $sql)) . "</div>";
 	}
 	
 	$sort = $_POST["get_sort"];
@@ -171,8 +173,11 @@ if (isset($_POST["get_seleted_Category"]) || isset($_POST["selectBrand"]) || iss
 	
 	$amount = 9;
 
-	$start = ((int)$_POST["pageNumber"]-1)*$amount;
-	$sql = $sql . " ORDER BY $sort ASC LIMIT $start, $amount";
+	if (isset($_POST["pageNumber"]) and is_numeric($_POST["pageNumber"])) {
+		$start = ((int) $_POST["pageNumber"] - 1) * $amount;
+	}
+	else $start = 1;
+		$sql = $sql . " ORDER BY $sort ASC LIMIT $start, $amount";
 	$amount = 20;
 
 	$index = 0;
